@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -17,10 +17,7 @@
         window.history.replaceState(null, "", "/" + path + l.hash);
       }
     })();
-    // Dark mode: follow system preference
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      document.documentElement.classList.add("dark");
-    }
+    // Light mode only — no system preference detection, no toggle.
   </script>
 </head>
 <body class="min-h-dvh bg-background text-foreground">
