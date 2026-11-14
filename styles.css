@@ -1,4 +1,9 @@
-/* Availability tokens — light mode only */
+/* ============================================================================
+   Lesson Booking — Student UI styles
+   Light mode only. Basecoat tokens + custom availability tokens.
+   ============================================================================ */
+
+/* ---------- Availability tokens (light only) ---------- */
 @layer base {
   :root,
   .light {
@@ -9,57 +14,211 @@
   }
 }
 
-/* Convenience utilities for availability tints */
-.bg-available-tint { background-color: color-mix(in oklch, var(--available) 15%, transparent); }
-.text-available-fg { color: var(--available-foreground); }
-.bg-full-tint { background-color: color-mix(in oklch, var(--full) 15%, transparent); }
-.text-full-fg { color: var(--full-foreground); }
+/* ---------- Availability tint utilities ---------- */
+.bg-available-tint   { background-color: color-mix(in oklch, var(--available) 15%, transparent); }
+.text-available-fg   { color: var(--available-foreground); }
+.bg-full-tint        { background-color: color-mix(in oklch, var(--full) 15%, transparent); }
+.text-full-fg        { color: var(--full-foreground); }
 .bg-available-swatch { background-color: color-mix(in oklch, var(--available) 30%, transparent); }
-.bg-full-swatch { background-color: color-mix(in oklch, var(--full) 30%, transparent); }
+.bg-full-swatch      { background-color: color-mix(in oklch, var(--full) 30%, transparent); }
 
-/* Progress bar */
-.progress-node {
-  width: 1.75rem; height: 1.75rem; border-radius: 9999px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem; font-weight: 600;
-  border: 2px solid var(--border, #e5e7eb);
-  color: var(--muted-foreground, #6b7280);
+/* ============================================================================
+   Stepper (animated measured track)
+   ============================================================================ */
+.stepper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.25rem 0 1.5rem;
+  user-select: none;
+}
+
+.stepper-track,
+.stepper-progress {
+  position: absolute;
+  top: 1.05rem;              /* vertical center of 2.1rem circles */
+  height: 2px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+.stepper-track {
+  background: var(--border, #d1d9e6);
+  z-index: 0;
+}
+.stepper-progress {
+  background: var(--primary, #3b82f6);
+  z-index: 1;
+  transition: left 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+              width 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.stepper-progress::after {
+  content: "";
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary, #3b82f6);
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.25s ease 0.15s;
+}
+.stepper-progress.has-progress::after { opacity: 1; }
+
+.step-node {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.step-circle {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
   background: var(--background, #fff);
-  flex-shrink: 0;
+  border: 2px solid var(--border, #cbd5e1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--muted-foreground, #64748b);
+  transition: background 0.3s, border-color 0.3s, color 0.3s,
+              box-shadow 0.3s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.progress-node[data-state="completed"] {
-  background: var(--primary, #111); color: var(--primary-foreground, #fff);
-  border-color: var(--primary, #111);
+.step-label {
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--muted-foreground, #64748b);
+  white-space: nowrap;
+  transition: color 0.25s;
 }
-.progress-node[data-state="current"] {
-  border-color: var(--primary, #111); color: var(--primary, #111);
-  font-weight: 700;
-}
-.progress-line { flex: 1; height: 2px; background: var(--border, #e5e7eb); margin: 0 0.25rem; }
-.progress-line[data-completed="true"] { background: var(--primary, #111); }
 
-/* Date cells */
+.step-node[data-state="current"] .step-circle {
+  border-color: var(--primary, #3b82f6);
+  background: var(--primary, #3b82f6);
+  color: var(--primary-foreground, #fff);
+  box-shadow: 0 6px 14px -4px color-mix(in oklch, var(--primary, #3b82f6) 55%, transparent);
+  transform: scale(1.08);
+}
+.step-node[data-state="current"] .step-label {
+  color: var(--foreground, #0f172a);
+  font-weight: 600;
+}
+.step-node[data-state="completed"] .step-circle {
+  border-color: var(--primary, #3b82f6);
+  background: color-mix(in oklch, var(--primary, #3b82f6) 15%, transparent);
+  color: var(--primary, #3b82f6);
+}
+.step-node[data-state="completed"] .step-label {
+  color: var(--primary, #3b82f6);
+}
+
+@keyframes stepperPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.16); }
+  100% { transform: scale(1.08); }
+}
+.step-node.just-activated .step-circle {
+  animation: stepperPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Sticky progress bar wrapper (used on Step 2 only) */
+.progress-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in oklch, var(--background) 95%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+/* ============================================================================
+   Class cards (2-up compact, faded image)
+   ============================================================================ */
+.class-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  aspect-ratio: 4 / 3;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.class-card:active { transform: scale(0.97); }
+.class-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.class-card .fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.35) 55%, transparent);
+}
+.class-card .label {
+  position: absolute;
+  inset: 0;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: #fff;
+  z-index: 10;
+}
+.class-card .label .name {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+.class-card .label .code {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.7);
+  margin-top: 0.1rem;
+}
+
+/* ============================================================================
+   Calendar date cells
+   ============================================================================ */
 .date-cell {
   aspect-ratio: 1 / 1;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 9999px;
   font-size: 0.875rem;
   transition: transform 0.1s;
 }
-.date-cell:active:not([aria-disabled="true"]) { transform: scale(0.94); }
-.date-cell[data-state="past"] { color: color-mix(in oklch, currentColor 40%, transparent); cursor: not-allowed; }
-.date-cell[data-state="grey"] { color: var(--muted-foreground, #6b7280); }
-.date-cell[data-state="green"] { background-color: color-mix(in oklch, var(--available) 15%, transparent); color: var(--available-foreground); }
-.date-cell[data-state="red"] { background-color: color-mix(in oklch, var(--full) 15%, transparent); color: var(--full-foreground); }
-.date-cell[data-today="true"] { outline: 1px solid color-mix(in oklch, currentColor 40%, transparent); outline-offset: -1px; }
-.date-cell[aria-selected="true"] { outline: 2px solid var(--foreground, #111); outline-offset: 2px; }
-
-/* Class card image fade */
-.class-card { position: relative; overflow: hidden; border-radius: 0.75rem; height: 11rem; cursor: pointer; transition: transform 0.1s; }
-.class-card:active { transform: scale(0.98); }
-.class-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.class-card .fade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4) 50%, transparent); }
-.class-card .label { position: absolute; inset: 0; padding: 1.25rem; display: flex; flex-direction: column; justify-content: flex-end; color: #fff; z-index: 10; }
-
-/* Sticky progress bar on step 2 */
-.progress-sticky { position: sticky; top: 0; z-index: 30; background: color-mix(in oklch, var(--background) 95%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border, #e5e7eb); }
+.date-cell:active:not([aria-disabled="true"]) {
+  transform: scale(0.94);
+}
+.date-cell[data-state="past"] {
+  color: color-mix(in oklch, currentColor 40%, transparent);
+  cursor: not-allowed;
+}
+.date-cell[data-state="grey"] {
+  color: var(--muted-foreground, #6b7280);
+}
+.date-cell[data-state="green"] {
+  background-color: color-mix(in oklch, var(--available) 15%, transparent);
+  color: var(--available-foreground);
+}
+.date-cell[data-state="red"] {
+  background-color: color-mix(in oklch, var(--full) 15%, transparent);
+  color: var(--full-foreground);
+}
+.date-cell[data-today="true"] {
+  outline: 1px solid color-mix(in oklch, currentColor 40%, transparent);
+  outline-offset: -1px;
+}
+.date-cell[aria-selected="true"] {
+  outline: 2px solid var(--foreground, #111);
+  outline-offset: 2px;
+}
