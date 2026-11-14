@@ -82,24 +82,55 @@ function renderProgressBar() {
   const nodes = steps.map((label, i) => {
     const n = i + 1;
     const st = n < state.step ? "completed" : n === state.step ? "current" : "upcoming";
-    const line = i < steps.length - 1
-      ? `<div class="progress-line" data-completed="${n < state.step}"></div>` : "";
     return `
-      <div class="flex flex-col items-center gap-1">
-        <div class="progress-node" data-state="${st}" aria-current="${n === state.step ? "step" : "false"}">
-          ${st === "completed" ? "✓" : n}
-        </div>
-        <span class="text-[10px] ${st === "current" ? "font-semibold text-foreground" : "text-muted-foreground"}">${label}</span>
+      <div class="step-node" data-state="${st}" data-step-index="${i}">
+        <div class="step-circle">${st === "completed" ? "✓" : n}</div>
+        <div class="step-label">${label}</div>
       </div>
-      ${line}
     `;
   }).join("");
   const sticky = state.step === 2;
   return `
-    <header class="${sticky ? "progress-sticky" : ""} px-4 py-3 border-b border-border">
-      <div class="flex items-start justify-between gap-1">${nodes}</div>
+    <header class="${sticky ? "progress-sticky" : ""} px-4 pt-3">
+      <div class="stepper" id="stepperHeader" aria-label="Booking progress">
+        <div class="stepper-track" id="stepperTrack"></div>
+        <div class="stepper-progress" id="stepperProgress"></div>
+        ${nodes}
+      </div>
     </header>
   `;
+}
+
+function syncStepper() {
+  const header = document.getElementById("stepperHeader");
+  const track = document.getElementById("stepperTrack");
+  const progress = document.getElementById("stepperProgress");
+  if (!header || !track || !progress) return;
+
+  const nodes = header.querySelectorAll(".step-node");
+  if (nodes.length < 2) return;
+
+  const headerRect = header.getBoundingClientRect();
+  const centers = Array.from(nodes).map(node => {
+    const r = node.querySelector(".step-circle").getBoundingClientRect();
+    return r.left + r.width / 2 - headerRect.left;
+  });
+
+  const first = centers[0];
+  const last = centers[centers.length - 1];
+
+  track.style.left = first + "px";
+  track.style.width = (last - first) + "px";
+
+  const currentCenter = centers[state.step - 1];
+  progress.style.left = first + "px";
+  progress.style.width = Math.max(0, currentCenter - first) + "px";
+  progress.classList.toggle("has-progress", state.step > 1);
+
+  // Pop animation on the newly active node
+  const active = nodes[state.step - 1];
+  active.classList.add("just-activated");
+  setTimeout(() => active.classList.remove("just-activated"), 450);
 }
 
 // ============================================================================
@@ -110,20 +141,20 @@ function renderStep1() {
     return `<p class="text-sm text-muted-foreground text-center py-10">Loading classes…</p>`;
   }
   return `
-    <h1 class="text-2xl font-semibold mb-4">Select a vehicle class</h1>
-    <div class="grid grid-cols-1 gap-4">
+    <h1 class="text-xl font-semibold mb-3">Select a vehicle class</h1>
+    <div class="grid grid-cols-2 gap-3">
       ${state.classes.map(c => `
         <div class="class-card" data-class-id="${c.id}" data-class-name="${c.name}" data-class-code="${c.code}">
           <img src="${c.img}" alt="" loading="lazy" />
           <div class="fade"></div>
           <div class="label">
-            <span class="text-xl font-semibold">${c.name}</span>
-            ${c.code ? `<span class="text-sm text-white/70">${c.code}</span>` : ""}
+            <span class="name">${c.name}</span>
+            ${c.code ? `<span class="code">${c.code}</span>` : ""}
           </div>
         </div>
       `).join("")}
     </div>
-    <div class="mt-6 text-center">
+    <div class="mt-5 text-center">
       <a href="#/cancel" id="to-cancel" class="text-sm text-muted-foreground underline-offset-4 hover:underline">
         Already booked? Look up or cancel →
       </a>
@@ -648,12 +679,21 @@ function attachEvents() {
     else { state.cancelBookings = state.cancelBookings.filter(x => x.token !== b.token); }
     render();
   });
+
+  // Stepper geometry — must run after every render
+  requestAnimationFrame(syncStepper);
 }
 
 // ============================================================================
 // Boot
 // ============================================================================
 state.view = "booking";
+
+// Run stepper measurement once on boot + on every resize.
+window.addEventListener("resize", () => requestAnimationFrame(syncStepper));
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => requestAnimationFrame(syncStepper));
+}
 
 (async () => {
   await loadClasses();
