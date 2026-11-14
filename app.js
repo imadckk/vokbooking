@@ -40,6 +40,7 @@ const state = {
   selectedWindow: null,
   availability: [],
   windowsForDate: [],
+  classes: [],
   form: { ic: "", name: "", phone: "" },
   studentStatus: null,
   formErrors: {},
@@ -105,17 +106,13 @@ function renderProgressBar() {
 // STEP 1 — Class selection
 // ============================================================================
 function renderStep1() {
-  const classes = [
-    { id: "lorry", name: "Lorry", code: "E", img: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80" },
-    { id: "shovel", name: "Shovel", code: "H", img: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80" },
-    { id: "excavator", name: "Excavator", code: "I", img: "https://images.unsplash.com/photo-1621922688754-2a2c74b1c94f?w=800&q=80" },
-    { id: "treller", name: "Treller", code: "", img: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&q=80" },
-    { id: "bus", name: "Bus", code: "", img: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80" },
-  ];
+  if (!state.classes.length) {
+    return `<p class="text-sm text-muted-foreground text-center py-10">Loading classes…</p>`;
+  }
   return `
     <h1 class="text-2xl font-semibold mb-4">Select a vehicle class</h1>
     <div class="grid grid-cols-1 gap-4">
-      ${classes.map(c => `
+      ${state.classes.map(c => `
         <div class="class-card" data-class-id="${c.id}" data-class-name="${c.name}" data-class-code="${c.code}">
           <img src="${c.img}" alt="" loading="lazy" />
           <div class="fade"></div>
@@ -465,6 +462,28 @@ async function loadAvailability() {
   state.availability = data ?? [];
 }
 
+async function loadClasses() {
+  const { data, error } = await supabase.rpc("get_classes");
+  if (error) { state.classes = []; return; }
+  state.classes = (data ?? []).map(c => ({
+    id: c.id,          // real UUID from DB
+    name: c.name,
+    code: c.code ?? "",
+    img: classImage(c.name),
+  }));
+}
+
+function classImage(name) {
+  const map = {
+    lorry:     "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80",
+    shovel:    "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80",
+    excavator: "https://images.unsplash.com/photo-1621922688754-2a2c74b1c94f?w=800&q=80",
+    treller:   "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&q=80",
+    bus:       "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80",
+  };
+  return map[name.toLowerCase()] ?? map.lorry;
+}
+
 async function loadWindows() {
   const { data, error } = await supabase.rpc("get_open_windows_for_class_date", {
     p_date: state.selectedDate, p_vehicle_class_id: state.selectedClass.id,
@@ -516,7 +535,11 @@ function attachEvents() {
   // Step 1
   document.querySelectorAll(".class-card").forEach(el => {
     el.addEventListener("click", async () => {
-      state.selectedClass = { id: el.dataset.classId, name: el.dataset.className, code: el.dataset.classCode };
+      state.selectedClass = {
+        id: el.dataset.classId,
+        name: el.dataset.className,
+        code: el.dataset.classCode,
+      };
       state.step = 2;
       state.selectedDate = null;
       state.selectedWindow = null;
@@ -631,4 +654,8 @@ function attachEvents() {
 // Boot
 // ============================================================================
 state.view = "booking";
-render();
+
+(async () => {
+  await loadClasses();
+  render();
+})();
