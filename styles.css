@@ -1,0 +1,74 @@
+/* Availability tokens — extend Basecoat's semantic system */
+@layer base {
+  :root {
+    --available: oklch(0.72 0.17 145);
+    --available-foreground: oklch(0.40 0.12 145);
+    --full: oklch(0.63 0.22 25);
+    --full-foreground: oklch(0.45 0.18 25);
+  }
+  .dark {
+    --available: oklch(0.78 0.15 145);
+    --available-foreground: oklch(0.88 0.10 145);
+    --full: oklch(0.72 0.18 25);
+    --full-foreground: oklch(0.85 0.12 25);
+  }
+}
+
+/* Tailwind v4 browser build reads @theme from a <style type="text/tailwindcss"> block.
+   We expose the availability tokens as utilities via arbitrary values instead,
+   so no build step is required. The classes below are used directly in JS. */
+
+/* Convenience utilities for availability tints */
+.bg-available-tint { background-color: color-mix(in oklch, var(--available) 15%, transparent); }
+.text-available-fg { color: var(--available-foreground); }
+.bg-full-tint { background-color: color-mix(in oklch, var(--full) 15%, transparent); }
+.text-full-fg { color: var(--full-foreground); }
+.bg-available-swatch { background-color: color-mix(in oklch, var(--available) 30%, transparent); }
+.bg-full-swatch { background-color: color-mix(in oklch, var(--full) 30%, transparent); }
+
+/* Progress bar */
+.progress-node {
+  width: 1.75rem; height: 1.75rem; border-radius: 9999px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 600;
+  border: 2px solid var(--border, #e5e7eb);
+  color: var(--muted-foreground, #6b7280);
+  background: var(--background, #fff);
+  flex-shrink: 0;
+}
+.progress-node[data-state="completed"] {
+  background: var(--primary, #111); color: var(--primary-foreground, #fff);
+  border-color: var(--primary, #111);
+}
+.progress-node[data-state="current"] {
+  border-color: var(--primary, #111); color: var(--primary, #111);
+  font-weight: 700;
+}
+.progress-line { flex: 1; height: 2px; background: var(--border, #e5e7eb); margin: 0 0.25rem; }
+.progress-line[data-completed="true"] { background: var(--primary, #111); }
+
+/* Date cells */
+.date-cell {
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  transition: transform 0.1s;
+}
+.date-cell:active:not([aria-disabled="true"]) { transform: scale(0.94); }
+.date-cell[data-state="past"] { color: color-mix(in oklch, currentColor 40%, transparent); cursor: not-allowed; }
+.date-cell[data-state="grey"] { color: var(--muted-foreground, #6b7280); }
+.date-cell[data-state="green"] { background-color: color-mix(in oklch, var(--available) 15%, transparent); color: var(--available-foreground); }
+.date-cell[data-state="red"] { background-color: color-mix(in oklch, var(--full) 15%, transparent); color: var(--full-foreground); }
+.date-cell[data-today="true"] { outline: 1px solid color-mix(in oklch, currentColor 40%, transparent); outline-offset: -1px; }
+.date-cell[aria-selected="true"] { outline: 2px solid var(--foreground, #111); outline-offset: 2px; }
+
+/* Class card image fade */
+.class-card { position: relative; overflow: hidden; border-radius: 0.75rem; height: 11rem; cursor: pointer; transition: transform 0.1s; }
+.class-card:active { transform: scale(0.98); }
+.class-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.class-card .fade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4) 50%, transparent); }
+.class-card .label { position: absolute; inset: 0; padding: 1.25rem; display: flex; flex-direction: column; justify-content: flex-end; color: #fff; z-index: 10; }
+
+/* Sticky progress bar on step 2 */
+.progress-sticky { position: sticky; top: 0; z-index: 30; background: color-mix(in oklch, var(--background) 95%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border, #e5e7eb); }
