@@ -4,7 +4,7 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = window.__SUPABASE_URL__ || "https://tkgdtcvunikiqyzjevgd.supabase.co";
-const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || "sb_publishable_zAFx0ndHB0gsB_zsTEXrWA_KpV04FUX";
+const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrZ2R0Y3Z1bmlraXF5empldmdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1NTI0OTksImV4cCI6MjExMDEyODQ5OX0.NYM4hwBiGHHX9PF0a5TgAkZXT2N3di5S_uZLugZwlU8";
 const PAYMENT_URL = ""; 
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
