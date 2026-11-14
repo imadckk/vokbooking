@@ -1,22 +1,13 @@
-/* Availability tokens — extend Basecoat's semantic system */
+/* Availability tokens — light mode only */
 @layer base {
-  :root {
+  :root,
+  .light {
     --available: oklch(0.72 0.17 145);
     --available-foreground: oklch(0.40 0.12 145);
     --full: oklch(0.63 0.22 25);
     --full-foreground: oklch(0.45 0.18 25);
   }
-  .dark {
-    --available: oklch(0.78 0.15 145);
-    --available-foreground: oklch(0.88 0.10 145);
-    --full: oklch(0.72 0.18 25);
-    --full-foreground: oklch(0.85 0.12 25);
-  }
 }
-
-/* Tailwind v4 browser build reads @theme from a <style type="text/tailwindcss"> block.
-   We expose the availability tokens as utilities via arbitrary values instead,
-   so no build step is required. The classes below are used directly in JS. */
 
 /* Convenience utilities for availability tints */
 .bg-available-tint { background-color: color-mix(in oklch, var(--available) 15%, transparent); }
